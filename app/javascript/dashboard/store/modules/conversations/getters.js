@@ -73,17 +73,29 @@ const getters = {
     return lastEmail;
   },
   getMineChats: (_state, _, __, rootGetters) => activeFilters => {
-    const currentUserID = rootGetters.getCurrentUser?.id;
+  const currentUserID = rootGetters.getCurrentUser?.id;
+  // 1. Pega a lista de times do usuário logado
+  const userTeams = rootGetters.getUserTeams || [];
 
-    return _state.allConversations.filter(conversation => {
-      const { assignee } = conversation.meta;
-      const isAssignedToMe = assignee && assignee.id === currentUserID;
-      const shouldFilter = applyPageFilters(conversation, activeFilters);
-      const isChatMine = isAssignedToMe && shouldFilter;
+  return _state.allConversations.filter(conversation => {
+    const { assignee, team } = conversation.meta;
 
-      return isChatMine;
-    });
-  },
+    // Condição 1: A conversa está atribuída a mim
+    const isAssignedToMe = assignee && assignee.id === currentUserID;
+
+    // Condição 2: A conversa está atribuída a um dos meus times
+    const isAssignedToMyTeam = team && userTeams.some(userTeam => userTeam.id === team.id);
+
+    // Aplica os outros filtros da página (status, etc.)
+    const shouldFilter = applyPageFilters(conversation, activeFilters);
+
+    // A conversa é "minha" se estiver atribuída a mim OU ao meu time
+    // E passar nos outros filtros
+    const isChatMine = (isAssignedToMe || isAssignedToMyTeam) && shouldFilter;
+
+    return isChatMine;
+  });
+},
   getAppliedConversationFiltersV2: _state => {
     // TODO: Replace existing one with V2 after migrating the filters to use camelcase
     return _state.appliedFilters.map(camelcaseKeys);
