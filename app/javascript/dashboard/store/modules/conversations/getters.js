@@ -74,26 +74,18 @@ const getters = {
   },
   getMineChats: (_state, _, __, rootGetters) => activeFilters => {
   const currentUserID = rootGetters.getCurrentUser?.id;
-  // 1. Pega a lista de times do usuário logado
-  const userTeams = rootGetters.getUserTeams || [];
+  const userTeams = rootGetters.getCurrentUser?.account_user?.team_ids || [];
 
   return _state.allConversations.filter(conversation => {
     const { assignee, team } = conversation.meta;
 
-    // Condição 1: A conversa está atribuída a mim
     const isAssignedToMe = assignee && assignee.id === currentUserID;
+    const isAssignedToMyTeam = team && userTeams.includes(team.id);
 
-    // Condição 2: A conversa está atribuída a um dos meus times
-    const isAssignedToMyTeam = team && userTeams.some(userTeam => userTeam.id === team.id);
-
-    // Aplica os outros filtros da página (status, etc.)
     const shouldFilter = applyPageFilters(conversation, activeFilters);
+    const isChatRelevant = (isAssignedToMe || isAssignedToMyTeam) && shouldFilter;
 
-    // A conversa é "minha" se estiver atribuída a mim OU ao meu time
-    // E passar nos outros filtros
-    const isChatMine = (isAssignedToMe || isAssignedToMyTeam) && shouldFilter;
-
-    return isChatMine;
+    return isChatRelevant;
   });
 },
   getAppliedConversationFiltersV2: _state => {
