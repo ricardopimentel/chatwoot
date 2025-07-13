@@ -73,19 +73,35 @@ const getters = {
     return lastEmail;
   },
   getMineChats: (_state, _, __, rootGetters) => activeFilters => {
+  // Log para provar que a função foi chamada
+  console.log('--- ✅ [DEBUG] A FUNÇÃO getMineChats FOI EXECUTADA! ---');
+
   const currentUserID = rootGetters.getCurrentUser?.id;
-  const userTeams = rootGetters.getCurrentUser?.account_user?.team_ids || [];
+  const userTeams = rootGetters.getUserTeams || [];
+
+  // Log para ver os dados do usuário
+  console.log(`[DEBUG] ID do Usuário: ${currentUserID}, Times do Usuário:`, userTeams.map(t => t.id));
 
   return _state.allConversations.filter(conversation => {
     const { assignee, team } = conversation.meta;
 
     const isAssignedToMe = assignee && assignee.id === currentUserID;
-    const isAssignedToMyTeam = team && userTeams.includes(team.id);
-
+    const isAssignedToMyTeam = team && userTeams.some(userTeam => userTeam.id === team.id);
     const shouldFilter = applyPageFilters(conversation, activeFilters);
-    const isChatRelevant = (isAssignedToMe || isAssignedToMyTeam) && shouldFilter;
+    const isChatMine = (isAssignedToMe || isAssignedToMyTeam) && shouldFilter;
 
-    return isChatRelevant;
+    // Log para CADA conversa sendo avaliada
+    console.log(`
+      ---------------------------------
+      [DEBUG] Verificando Conversa ID: ${conversation.id}
+      - Atribuída a mim? (isAssignedToMe): ${isAssignedToMe}
+      - Atribuída ao meu time? (isAssignedToMyTeam): ${isAssignedToMyTeam}
+      - Passa nos outros filtros? (shouldFilter): ${shouldFilter}
+      - >> É considerada MINHA? (isChatMine): ${isChatMine}
+      - Meta da Conversa:`, conversation.meta
+    );
+
+    return isChatMine;
   });
 },
   getAppliedConversationFiltersV2: _state => {
