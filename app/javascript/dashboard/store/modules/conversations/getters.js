@@ -73,14 +73,13 @@ const getters = {
     return lastEmail;
   },
   getMineChats: (_state, _, __, rootGetters) => activeFilters => {
-  // Log para provar que a função foi chamada
   console.log('--- ✅ [DEBUG] A FUNÇÃO getMineChats FOI EXECUTADA! ---');
 
   const currentUserID = rootGetters.getCurrentUser?.id;
   const userTeams = rootGetters.getUserTeams || [];
 
-  // Log para ver os dados do usuário
-  console.log(`[DEBUG] ID do Usuário: ${currentUserID}, Times do Usuário:`, userTeams.map(t => t.id));
+  // CORRIGIDO AQUI TAMBÉM para o caso de o array não estar vazio no futuro
+  console.log(`[DEBUG] ID do Usuário: ${currentUserID}, Times do Usuário:`, JSON.stringify(userTeams));
 
   return _state.allConversations.filter(conversation => {
     const { assignee, team } = conversation.meta;
@@ -90,7 +89,6 @@ const getters = {
     const shouldFilter = applyPageFilters(conversation, activeFilters);
     const isChatMine = (isAssignedToMe || isAssignedToMyTeam) && shouldFilter;
 
-    // Log para CADA conversa sendo avaliada
     console.log(`
       ---------------------------------
       [DEBUG] Verificando Conversa ID: ${conversation.id}
@@ -98,10 +96,8 @@ const getters = {
       - Atribuída ao meu time? (isAssignedToMyTeam): ${isAssignedToMyTeam}
       - Passa nos outros filtros? (shouldFilter): ${shouldFilter}
       - >> É considerada MINHA? (isChatMine): ${isChatMine}
-	  - Os times são: ${team}
-	  - Time: ${conversation.meta.team}
-      - Meta da Conversa:`, conversation.meta
-    );
+      - Time da Conversa (JSON): ${JSON.stringify(team, null, 2)}
+    `);
 
     return isChatMine;
   });
