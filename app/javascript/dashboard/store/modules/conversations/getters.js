@@ -85,6 +85,16 @@ const getters = {
     // Condição B: A conversa pertence a um time do qual sou membro?
     // MUDANÇA CRÍTICA: Usamos a propriedade 'is_member' que o backend já nos fornece!
     const isAssignedToMyTeam = team && team.is_member === true;
+    
+    console.log(`
+      ---------------------------------
+      [DEBUG] Verificando Conversa ID: ${conversation.id}
+      - Atribuída a mim? (isAssignedToMe): ${isAssignedToMe}
+      - Atribuída ao meu time? (isAssignedToMyTeam): ${isAssignedToMyTeam}
+      - is member: ${team.is_member}
+      - >> É considerada MINHA? (isChatMine): ${isChatMine}
+      - Time da Conversa (JSON): ${JSON.stringify(team, null, 2)}
+    `);
 
     // Condição C: A conversa passa nos outros filtros da página?
     const shouldFilter = applyPageFilters(conversation, activeFilters);
