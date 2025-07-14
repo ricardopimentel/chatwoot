@@ -15,52 +15,61 @@ export const getSelectedChatConversation = ({
   allConversations.filter(conversation => conversation.id === selectedChatId);
 
 const getters = {
-  getAllConversations: ({ allConversations, chatSortFilter: sortKey }) => {
-    return allConversations.sort((a, b) => sortComparator(a, b, sortKey));
-  },
-  getFilteredConversations: (
+    getAllConversations: ({ allConversations, chatSortFilter: sortKey }) => {
+      return allConversations.sort((a, b) => sortComparator(a, b, sortKey));
+    },
+    getFilteredConversations: (
     { allConversations, chatSortFilter, appliedFilters },
     _,
     __,
     rootGetters
   ) => {
+    console.log('--- 🚀 [DEBUG] INICIANDO getFilteredConversations ---');
     const currentUser = rootGetters.getCurrentUser;
     const currentUserId = rootGetters.getCurrentUser.id;
     const currentAccountId = rootGetters.getCurrentAccountId;
-  
     const permissions = getUserPermissions(currentUser, currentAccountId);
     const userRole = getUserRole(currentUser, currentAccountId);
   
     return allConversations
       .filter(conversation => {
+        // --- LOGS PARA CADA CONVERSA ---
+        console.log(`\n\n--- Verificando Conversa ID: ${conversation.id} ---`);
+  
         if (!conversation.meta) {
+          console.log('Conversa REJEITADA: Sem objeto meta.');
           return false;
         }
   
-        // --- NOSSA LÓGICA DE PRIORIDADE ---
         const { assignee, team } = conversation.meta;
+  
         const isAssignedToMe = assignee && assignee.id === currentUserId;
+        console.log(`- é Atribuída a Mim? (isAssignedToMe): ${isAssignedToMe}`);
+  
         const isAssignedToMyTeam = team && team.is_member === true;
+        console.log(`- é do Meu Time? (isAssignedToMyTeam): ${isAssignedToMyTeam}`);
+  
         const isMineOrMyTeams = isAssignedToMe || isAssignedToMyTeam;
-        // --- FIM DA LÓGICA ---
+        console.log(`- é Minha OU do Meu Time? (isMineOrMyTeams): ${isMineOrMyTeams}`);
   
         const matchesFilterResult = matchesFilters(
           conversation,
           appliedFilters
         );
-        // Esta é a "Regra do Dono" que estava nos atrapalhando
+        console.log(`- Passa nos Filtros de Busca? (matchesFilterResult): ${matchesFilterResult}`);
+  
         const allowedForRole = applyRoleFilter(
           conversation,
           userRole,
           permissions,
           currentUserId
         );
+        console.log(`- É Permitida pela Regra de Permissão Padrão? (allowedForRole): ${allowedForRole}`);
   
-        // A MÁGICA FINAL:
-        // A conversa passa se os filtros de busca derem match E
-        // (ela for minha/do meu time OU a permissão de cargo padrão já permitir)
-        // O "OU" (||) garante que nossa regra de time tenha prioridade.
-        return matchesFilterResult && (isMineOrMyTeams || allowedForRole);
+        const finalDecision = matchesFilterResult && (isMineOrMyTeams || allowedForRole);
+        console.log(`--- DECISÃO FINAL: Mostrar esta conversa? ${finalDecision} ---`);
+  
+        return finalDecision;
       })
       .sort((a, b) => sortComparator(a, b, chatSortFilter));
   },
