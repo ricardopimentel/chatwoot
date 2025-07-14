@@ -327,20 +327,39 @@ const pageTitle = computed(() => {
 
 const conversationList = computed(() => {
   let localConversationList = [];
+  const filters = conversationFilters.value;
 
+  // --- INÍCIO DA MUDANÇA CRÍTICA ---
+
+  // Primeiro, sempre pegamos a lista da aba "Todos", que sabemos que funciona.
+  const allChats = [...allChatList.value(filters)];
+
+  // Agora, aplicamos a lógica de filtro correta dependendo da aba ativa.
   if (!hasAppliedFiltersOrActiveFolders.value) {
-    const filters = conversationFilters.value;
     if (activeAssigneeTab.value === 'me') {
-      localConversationList = [...mineChatsList.value(filters)];
+      // Para a aba "Minhas", filtramos a lista "Todos" com a nossa regra.
+      localConversationList = allChats.filter(conversation => {
+        if (!conversation.meta) return false;
+        const { assignee, team } = conversation.meta;
+        const isAssignedToMe = assignee && assignee.id === currentUser.value.id;
+        const isAssignedToMyTeam = team && team.is_member === true;
+        return isAssignedToMe || isAssignedToMyTeam;
+      });
     } else if (activeAssigneeTab.value === 'unassigned') {
+      // Para a aba "Não atribuídas", usamos o getter dela, que já funciona.
       localConversationList = [...unAssignedChatsList.value(filters)];
     } else {
-      localConversationList = [...allChatList.value(filters)];
+      // Para a aba "Todos", simplesmente usamos a lista completa.
+      localConversationList = allChats;
     }
   } else {
+    // Se houver filtros avançados, a lógica original é mantida.
     localConversationList = [...chatLists.value];
   }
 
+  // --- FIM DA MUDANÇA CRÍTICA ---
+
+  // A lógica de pastas continua a mesma.
   if (activeFolder.value) {
     const { payload } = activeFolder.value.query;
     localConversationList = localConversationList.filter(conversation => {
