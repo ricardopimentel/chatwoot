@@ -281,6 +281,13 @@ const conversationFilters = computed(() => {
   };
 });
 
+const activeTeam = computed(() => {
+  if (props.teamId) {
+    return getTeamFn.value(props.teamId);
+  }
+  return {};
+});
+
 const pageTitle = computed(() => {
   if (hasAppliedFilters.value) {
     return t('CHAT_LIST.TAB_HEADING');
