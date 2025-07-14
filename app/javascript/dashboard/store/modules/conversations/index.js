@@ -11,7 +11,7 @@ const state = {
   allConversations: [],
   attachments: {},
   listLoadingStatus: true,
-  chatStatusFilter: wootConstants.STATUS_TYPE.OPEN,
+  chatStatusFilter: 'mine',
   chatSortFilter: wootConstants.SORT_BY_TYPE.LATEST,
   currentInbox: null,
   selectedChatId: null,
