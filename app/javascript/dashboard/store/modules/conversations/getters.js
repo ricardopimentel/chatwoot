@@ -27,24 +27,40 @@ const getters = {
     const currentUser = rootGetters.getCurrentUser;
     const currentUserId = rootGetters.getCurrentUser.id;
     const currentAccountId = rootGetters.getCurrentAccountId;
-
+  
     const permissions = getUserPermissions(currentUser, currentAccountId);
     const userRole = getUserRole(currentUser, currentAccountId);
-
+  
     return allConversations
       .filter(conversation => {
+        if (!conversation.meta) {
+          return false;
+        }
+  
+        // --- NOSSA LÓGICA DE PRIORIDADE ---
+        const { assignee, team } = conversation.meta;
+        const isAssignedToMe = assignee && assignee.id === currentUserId;
+        const isAssignedToMyTeam = team && team.is_member === true;
+        const isMineOrMyTeams = isAssignedToMe || isAssignedToMyTeam;
+        // --- FIM DA LÓGICA ---
+  
         const matchesFilterResult = matchesFilters(
           conversation,
           appliedFilters
         );
+        // Esta é a "Regra do Dono" que estava nos atrapalhando
         const allowedForRole = applyRoleFilter(
           conversation,
           userRole,
           permissions,
           currentUserId
         );
-
-        return matchesFilterResult && allowedForRole;
+  
+        // A MÁGICA FINAL:
+        // A conversa passa se os filtros de busca derem match E
+        // (ela for minha/do meu time OU a permissão de cargo padrão já permitir)
+        // O "OU" (||) garante que nossa regra de time tenha prioridade.
+        return matchesFilterResult && (isMineOrMyTeams || allowedForRole);
       })
       .sort((a, b) => sortComparator(a, b, chatSortFilter));
   },
