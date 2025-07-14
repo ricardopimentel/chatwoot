@@ -73,7 +73,7 @@ const getters = {
     return lastEmail;
   },
   getMineChats: (_state, _, __, rootGetters) => activeFilters => {
-  console.log('--- ✅ [DEBUG] A FUNÇÃO getMineChats FOI EXECUTADA! ---');
+  console.log('-- ✅ [DEBUG] A FUNÇÃO getMineChats FOI EXECUTADA! --');
 
   const currentUserID = rootGetters.getCurrentUser?.id;
   const userTeams = rootGetters.getUserTeams || [];
