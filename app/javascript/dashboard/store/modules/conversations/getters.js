@@ -26,10 +26,15 @@ const getters = {
   ) => {
     console.log('--- 🚀 [DEBUG] INICIANDO getFilteredConversations ---');
     const currentUser = rootGetters.getCurrentUser;
+    console.log(`User: ${rootGetters.getCurrentUser}`);
     const currentUserId = rootGetters.getCurrentUser.id;
+    console.log(`User id: ${rootGetters.getCurrentUser.id}`);
     const currentAccountId = rootGetters.getCurrentAccountId;
+    console.log(`account id: ${rootGetters.getCurrentAccountId}`);
     const permissions = getUserPermissions(currentUser, currentAccountId);
+    console.log(`user permission: ${getUserPermissions(currentUser, currentAccountId)}`);
     const userRole = getUserRole(currentUser, currentAccountId);
+    console.log(`user role: ${getUserRole(currentUser, currentAccountId)}`);
     console.log(`Até aqui foi?`);
     
     return allConversations.filter(conversation => {
