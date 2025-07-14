@@ -98,6 +98,8 @@ const getters = {
       - Atribuída ao meu time? (isAssignedToMyTeam): ${isAssignedToMyTeam}
       - Passa nos outros filtros? (shouldFilter): ${shouldFilter}
       - >> É considerada MINHA? (isChatMine): ${isChatMine}
+	  - Os times são: ${team}
+	  - Time: ${conversation.meta.team}
       - Meta da Conversa:`, conversation.meta
     );
 
