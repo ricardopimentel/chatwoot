@@ -269,9 +269,9 @@ const conversationListPagination = computed(() => {
 });
 
 const conversationFilters = computed(() => {
-  return {
+  // Primeiro, criamos um objeto base com os filtros comuns
+  const filters = {
     inboxId: props.conversationInbox ? props.conversationInbox : undefined,
-    assigneeType: activeAssigneeTab.value,
     status: activeStatus.value,
     sortBy: activeSortBy.value,
     page: conversationListPagination.value,
@@ -279,6 +279,15 @@ const conversationFilters = computed(() => {
     teamId: props.teamId || undefined,
     conversationType: props.conversationType || undefined,
   };
+
+  // AGORA, A MUDANÇA CRÍTICA:
+  // Nós só adicionamos o filtro 'assigneeType' se a aba ativa NÃO for a 'Minhas'.
+  if (activeAssigneeTab.value !== 'me') {
+    filters.assigneeType = activeAssigneeTab.value;
+  }
+
+  // Retornamos o objeto de filtros modificado.
+  return filters;
 });
 
 const activeTeam = computed(() => {
