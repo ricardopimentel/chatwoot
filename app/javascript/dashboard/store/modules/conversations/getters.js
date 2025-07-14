@@ -19,64 +19,65 @@ const getters = {
       return allConversations.sort((a, b) => sortComparator(a, b, sortKey));
     },
     getFilteredConversations: (
-    { allConversations, chatSortFilter, appliedFilters },
-    _,
-    __,
-    rootGetters
-  ) => {
-    console.log('--- 🚀 [DEBUG] INICIANDO getFilteredConversations ---');
-    const currentUser = rootGetters.getCurrentUser;
-    console.log(`User: ${rootGetters.getCurrentUser}`);
-    const currentUserId = rootGetters.getCurrentUser.id;
-    console.log(`User id: ${rootGetters.getCurrentUser.id}`);
-    const currentAccountId = rootGetters.getCurrentAccountId;
-    console.log(`account id: ${rootGetters.getCurrentAccountId}`);
-    const permissions = getUserPermissions(currentUser, currentAccountId);
-    console.log(`user permission: ${getUserPermissions(currentUser, currentAccountId)}`);
-    const userRole = getUserRole(currentUser, currentAccountId);
-    console.log(`user role: ${getUserRole(currentUser, currentAccountId)}`);
-    console.log(`Até aqui foi?`);
+      { allConversations, chatSortFilter, appliedFilters },
+      _, 
+      __, 
+      rootGetters
+    ) => {
+        console.log('allConversations:', allConversations);
+        console.log('Quantidade:', allConversations.length);
+        console.log('--- 🚀 [DEBUG] INICIANDO getFilteredConversations ---');
+        const currentUser = rootGetters.getCurrentUser;
+        console.log(`User: ${rootGetters.getCurrentUser}`);
+        const currentUserId = rootGetters.getCurrentUser.id;
+        console.log(`User id: ${rootGetters.getCurrentUser.id}`);
+        const currentAccountId = rootGetters.getCurrentAccountId;
+        console.log(`account id: ${rootGetters.getCurrentAccountId}`);
+        const permissions = getUserPermissions(currentUser, currentAccountId);
+        console.log(`user permission: ${getUserPermissions(currentUser, currentAccountId)}`);
+        const userRole = getUserRole(currentUser, currentAccountId);
+        console.log(`user role: ${getUserRole(currentUser, currentAccountId)}`);
+        console.log(`Até aqui foi?`);
+        
+        return allConversations.filter(conversation => {
+            // --- LOGS PARA CADA CONVERSA ---
+          console.log(`\n\n--- Verificando Conversa ID: ${conversation.id} ---`);
     
-    return allConversations.filter(conversation => {
-        // --- LOGS PARA CADA CONVERSA ---
-        console.log(`\n\n--- Verificando Conversa ID: ${conversation.id} ---`);
-  
-        if (!conversation.meta) {
-          console.log('Conversa REJEITADA: Sem objeto meta.');
-          return false;
-        }
-  
-        const { assignee, team } = conversation.meta;
-  
-        const isAssignedToMe = assignee && assignee.id === currentUserId;
-        console.log(`- é Atribuída a Mim? (isAssignedToMe): ${isAssignedToMe}`);
-  
-        const isAssignedToMyTeam = team && team.is_member === true;
-        console.log(`- é do Meu Time? (isAssignedToMyTeam): ${isAssignedToMyTeam}`);
-  
-        const isMineOrMyTeams = isAssignedToMe || isAssignedToMyTeam;
-        console.log(`- é Minha OU do Meu Time? (isMineOrMyTeams): ${isMineOrMyTeams}`);
-  
-        const matchesFilterResult = matchesFilters(
-          conversation,
-          appliedFilters
-        );
-        console.log(`- Passa nos Filtros de Busca? (matchesFilterResult): ${matchesFilterResult}`);
-  
-        const allowedForRole = applyRoleFilter(
-          conversation,
-          userRole,
-          permissions,
-          currentUserId
-        );
-        console.log(`- É Permitida pela Regra de Permissão Padrão? (allowedForRole): ${allowedForRole}`);
-  
-        const finalDecision = matchesFilterResult && (isMineOrMyTeams || allowedForRole);
-        console.log(`--- DECISÃO FINAL: Mostrar esta conversa? ${finalDecision} ---`);
-  
-        return finalDecision;
-      })
-      .sort((a, b) => sortComparator(a, b, chatSortFilter));
+          if (!conversation.meta) {
+            console.log('Conversa REJEITADA: Sem objeto meta.');
+            return false;
+          }
+    
+          const { assignee, team } = conversation.meta;
+    
+          const isAssignedToMe = assignee && assignee.id === currentUserId;
+          console.log(`- é Atribuída a Mim? (isAssignedToMe): ${isAssignedToMe}`);
+    
+          const isAssignedToMyTeam = team && team.is_member === true;
+          console.log(`- é do Meu Time? (isAssignedToMyTeam): ${isAssignedToMyTeam}`);
+    
+          const isMineOrMyTeams = isAssignedToMe || isAssignedToMyTeam;
+          console.log(`- é Minha OU do Meu Time? (isMineOrMyTeams): ${isMineOrMyTeams}`);
+    
+          const matchesFilterResult = matchesFilters(
+            conversation,
+            appliedFilters
+          );
+          console.log(`- Passa nos Filtros de Busca? (matchesFilterResult): ${matchesFilterResult}`);
+    
+          const allowedForRole = applyRoleFilter(
+            conversation,
+            userRole,
+            permissions,
+            currentUserId
+          );
+          console.log(`- É Permitida pela Regra de Permissão Padrão? (allowedForRole): ${allowedForRole}`);
+    
+          const finalDecision = matchesFilterResult && (isMineOrMyTeams || allowedForRole);
+          console.log(`--- DECISÃO FINAL: Mostrar esta conversa? ${finalDecision} ---`);
+    
+          return finalDecision;
+        }).sort((a, b) => sortComparator(a, b, chatSortFilter));
   },
   getSelectedChat: ({ selectedChatId, allConversations }) => {
     const selectedChat = allConversations.find(
