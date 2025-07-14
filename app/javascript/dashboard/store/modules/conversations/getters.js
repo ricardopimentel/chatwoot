@@ -126,25 +126,40 @@ const getters = {
     });
   },
   getAllStatusChats: (_state, _, __, rootGetters) => activeFilters => {
-    const currentUser = rootGetters.getCurrentUser;
-    const currentUserId = rootGetters.getCurrentUser.id;
-    const currentAccountId = rootGetters.getCurrentAccountId;
+  const currentUser = rootGetters.getCurrentUser;
+  const currentUserId = rootGetters.getCurrentUser.id;
+  const currentAccountId = rootGetters.getCurrentAccountId;
 
-    const permissions = getUserPermissions(currentUser, currentAccountId);
-    const userRole = getUserRole(currentUser, currentAccountId);
+  const permissions = getUserPermissions(currentUser, currentAccountId);
+  const userRole = getUserRole(currentUser, currentAccountId);
 
-    return _state.allConversations.filter(conversation => {
-      const shouldFilter = applyPageFilters(conversation, activeFilters);
-      const allowedForRole = applyRoleFilter(
-        conversation,
-        userRole,
-        permissions,
-        currentUserId
-      );
+  return _state.allConversations.filter(conversation => {
+    // --- INÍCIO DA NOSSA MODIFICAÇÃO ---
+    if (!conversation.meta) {
+      return false;
+    }
+    const { assignee, team } = conversation.meta;
+    const isAssignedToMe = assignee && assignee.id === currentUserId;
+    const isAssignedToMyTeam = team && team.is_member === true;
+    // --- FIM DA NOSSA MODIFICAÇÃO ---
 
-      return shouldFilter && allowedForRole;
-    });
-  },
+    const shouldFilter = applyPageFilters(conversation, activeFilters);
+    const allowedForRole = applyRoleFilter(
+      conversation,
+      userRole,
+      permissions,
+      currentUserId
+    );
+
+    // Adicionamos a nossa condição aqui com um "OU"
+    const isMineOrMyTeams = isAssignedToMe || isAssignedToMyTeam;
+
+    // A lógica final muda: a conversa deve passar nos filtros de permissão E
+    // (ser minha/do meu time OU ter a flag `allowedForRole` verdadeira)
+    // Isso garante que você veja as suas, as do seu time, e qualquer outra que sua permissão já deixava.
+    return shouldFilter && (isMineOrMyTeams || allowedForRole);
+  });
+},
   getChatListLoadingStatus: ({ listLoadingStatus }) => listLoadingStatus,
   getAllMessagesLoaded(_state) {
     const [chat] = getSelectedChatConversation(_state);
