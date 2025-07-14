@@ -81,7 +81,15 @@ const getters = {
     if (!conversation.meta) {
       return false;
     }
-
+    
+    console.log(
+      `[DEBUG] Conv ID ${conversation.id} | Time: ${JSON.stringify(
+        conversation.meta.team,
+        null,
+        2
+      )}`
+    );
+    
     const { assignee, team } = conversation.meta;
 
     // Condição A: A conversa está atribuída diretamente a mim?
