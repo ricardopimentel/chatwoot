@@ -329,13 +329,14 @@ const conversationList = computed(() => {
   if (!hasAppliedFiltersOrActiveFolders.value) {
     if (activeAssigneeTab.value === 'me') {
       // Para a aba "Minhas", filtramos a lista "Todos" com a nossa regra.
-      localConversationList = allChats.filter(conversation => {
-        if (!conversation.meta) return false;
-        const { assignee, team } = conversation.meta;
-        const isAssignedToMe = assignee && assignee.id === currentUser.value.id;
-        const isAssignedToMyTeam = team && team.is_member === true;
-        return isAssignedToMe || isAssignedToMyTeam;
-      });
+      //localConversationList = allChats.filter(conversation => {
+      //  if (!conversation.meta) return false;
+      //  const { assignee, team } = conversation.meta;
+      //  const isAssignedToMe = assignee && assignee.id === currentUser.value.id;
+      //  const isAssignedToMyTeam = team && team.is_member === true;
+      //  return isAssignedToMe || isAssignedToMyTeam;
+      //});
+      localConversationList = allChats;
     } else if (activeAssigneeTab.value === 'unassigned') {
       // Para a aba "Não atribuídas", usamos o getter dela, que já funciona.
       localConversationList = [...unAssignedChatsList.value(filters)];
