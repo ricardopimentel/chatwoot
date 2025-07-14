@@ -31,8 +31,7 @@ const getters = {
     const permissions = getUserPermissions(currentUser, currentAccountId);
     const userRole = getUserRole(currentUser, currentAccountId);
   
-    return allConversations
-      .filter(conversation => {
+    return allConversations.filter(conversation => {
         // --- LOGS PARA CADA CONVERSA ---
         console.log(`\n\n--- Verificando Conversa ID: ${conversation.id} ---`);
   
