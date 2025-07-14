@@ -75,26 +75,22 @@ const getters = {
   getMineChats: (_state, _, __, rootGetters) => activeFilters => {
   const currentUserID = rootGetters.getCurrentUser?.id;
 
+  // Filtra todas as conversas
   return _state.allConversations.filter(conversation => {
-    // Pegamos o 'assignee' e o 'team' da conversa
+    // Se conversation.meta não existir, ignora a conversa para evitar erros.
+    if (!conversation.meta) {
+      return false;
+    }
+
     const { assignee, team } = conversation.meta;
 
     // Condição A: A conversa está atribuída diretamente a mim?
     const isAssignedToMe = assignee && assignee.id === currentUserID;
 
     // Condição B: A conversa pertence a um time do qual sou membro?
-    // MUDANÇA CRÍTICA: Usamos a propriedade 'is_member' que o backend já nos fornece!
+    // A verificação 'team &&' é CRUCIAL. Ela garante que só tentaremos
+    // ler 'team.is_member' se a variável 'team' não for undefined.
     const isAssignedToMyTeam = team && team.is_member === true;
-    
-    console.log(`
-      ---------------------------------
-      [DEBUG] Verificando Conversa ID: ${conversation.id}
-      - Atribuída a mim? (isAssignedToMe): ${isAssignedToMe}
-      - Atribuída ao meu time? (isAssignedToMyTeam): ${isAssignedToMyTeam}
-      - is member: ${team.is_member}
-      - >> É considerada MINHA? (isChatMine): ${isChatMine}
-      - Time da Conversa (JSON): ${JSON.stringify(team, null, 2)}
-    `);
 
     // Condição C: A conversa passa nos outros filtros da página?
     const shouldFilter = applyPageFilters(conversation, activeFilters);
