@@ -19,35 +19,48 @@ const getters = {
     return allConversations.sort((a, b) => sortComparator(a, b, sortKey));
   },
   getFilteredConversations: (
-    { allConversations, chatSortFilter, appliedFilters },
-    _,
-    __,
-    rootGetters
-  ) => {
-    const currentUser = rootGetters.getCurrentUser;
-    const currentUserId = rootGetters.getCurrentUser.id;
-    const currentAccountId = rootGetters.getCurrentAccountId;
+  { allConversations, chatSortFilter, appliedFilters },
+  _,
+  __,
+  rootGetters
+) => {
+  const currentUser = rootGetters.getCurrentUser;
+  const currentUserId = rootGetters.getCurrentUser.id;
+  const currentAccountId = rootGetters.getCurrentAccountId;
 
-    const permissions = getUserPermissions(currentUser, currentAccountId);
-    const userRole = getUserRole(currentUser, currentAccountId);
+  const permissions = getUserPermissions(currentUser, currentAccountId);
+  const userRole = getUserRole(currentUser, currentAccountId);
 
-    return allConversations
-      .filter(conversation => {
-        const matchesFilterResult = matchesFilters(
-          conversation,
-          appliedFilters
-        );
-        const allowedForRole = applyRoleFilter(
-          conversation,
-          userRole,
-          permissions,
-          currentUserId
-        );
+  return allConversations
+    .filter(conversation => {
+      if (!conversation.meta) {
+        return false;
+      }
 
-        return matchesFilterResult && allowedForRole;
-      })
-      .sort((a, b) => sortComparator(a, b, chatSortFilter));
-  },
+      // --- INÍCIO DA NOSSA LÓGICA ---
+      const { assignee, team } = conversation.meta;
+      const isAssignedToMe = assignee && assignee.id === currentUserId;
+      const isAssignedToMyTeam = team && team.is_member === true;
+      const isMineOrMyTeams = isAssignedToMe || isAssignedToMyTeam;
+      // --- FIM DA NOSSA LÓGICA ---
+
+      const matchesFilterResult = matchesFilters(
+        conversation,
+        appliedFilters
+      );
+      const allowedForRole = applyRoleFilter(
+        conversation,
+        userRole,
+        permissions,
+        currentUserId
+      );
+
+      // A conversa passa se os filtros avançados derem match E
+      // (for minha/do meu time OU a permissão de cargo já permitir)
+      return matchesFilterResult && (isMineOrMyTeams || allowedForRole);
+    })
+    .sort((a, b) => sortComparator(a, b, chatSortFilter));
+},
   getSelectedChat: ({ selectedChatId, allConversations }) => {
     const selectedChat = allConversations.find(
       conversation => conversation.id === selectedChatId
@@ -107,6 +120,13 @@ const getters = {
     return (isAssignedToMe || isAssignedToMyTeam) && shouldFilter;
   });
 },
+  getMineChatsCount: (_state, getters) => {
+    // Simplesmente re-utilizamos a lógica do getter que já funciona!
+    // Passamos um array vazio como 'activeFilters' para garantir que contamos tudo
+    // antes de qualquer filtro de status ou etiqueta ser aplicado na tela.
+    const mineConversations = getters.getMineChats([]);
+    return mineConversations.length;
+  },  
   getAppliedConversationFiltersV2: _state => {
     // TODO: Replace existing one with V2 after migrating the filters to use camelcase
     return _state.appliedFilters.map(camelcaseKeys);
@@ -129,22 +149,35 @@ const getters = {
     const currentUser = rootGetters.getCurrentUser;
     const currentUserId = rootGetters.getCurrentUser.id;
     const currentAccountId = rootGetters.getCurrentAccountId;
-
+  
     const permissions = getUserPermissions(currentUser, currentAccountId);
     const userRole = getUserRole(currentUser, currentAccountId);
-
+  
     return _state.allConversations.filter(conversation => {
-      const shouldFilter = applyPageFilters(conversation, activeFilters);
-      const allowedForRole = applyRoleFilter(
-        conversation,
-        userRole,
-        permissions,
-        currentUserId
-      );
+      if (!conversation.meta) {
+        return false;
+      }
 
-      return shouldFilter && allowedForRole;
-    });
-  },
+    // --- INÍCIO DA NOSSA LÓGICA ---
+    const { assignee, team } = conversation.meta;
+    const isAssignedToMe = assignee && assignee.id === currentUserId;
+    const isAssignedToMyTeam = team && team.is_member === true;
+    const isMineOrMyTeams = isAssignedToMe || isAssignedToMyTeam;
+    // --- FIM DA NOSSA LÓGICA ---
+
+    const shouldFilter = applyPageFilters(conversation, activeFilters);
+    const allowedForRole = applyRoleFilter(
+      conversation,
+      userRole,
+      permissions,
+      currentUserId
+    );
+    
+    // A conversa passa se os filtros de status derem match E
+    // (for minha/do meu time OU a permissão de cargo já permitir)
+    return shouldFilter && (isMineOrMyTeams || allowedForRole);
+  });
+},
   getChatListLoadingStatus: ({ listLoadingStatus }) => listLoadingStatus,
   getAllMessagesLoaded(_state) {
     const [chat] = getSelectedChatConversation(_state);
