@@ -269,6 +269,8 @@ const conversationListPagination = computed(() => {
 });
 
 const conversationFilters = computed(() => {
+  console.log(`conversation filter`);
+  console.log(`executou?`);
   return {
     inboxId: props.conversationInbox ? props.conversationInbox : undefined,
     assigneeType: activeAssigneeTab.value,
