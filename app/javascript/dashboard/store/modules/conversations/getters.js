@@ -104,6 +104,7 @@ const getters = {
   return _state.allConversations.filter(conversation => {
     // Se conversation.meta não existir, ignora a conversa para evitar erros.
     if (!conversation.meta) {
+      console.log(`Não tenho os meta`);
       return false;
     }
 
