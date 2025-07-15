@@ -114,11 +114,7 @@ class ConversationFinder
       team_conversations = @conversations.where(team_id: current_user.team_ids)
       @conversations = my_conversations.or(team_conversations)
     when 'unassigned'
-      # --- MUDANÇA AQUI ---
-      # Primeiro, aplicamos o filtro de "não atribuído".
-      # Em seguida, encadeamos um novo filtro para buscar apenas
-      # as conversas que pertencem aos times do usuário.
-      @conversations = @conversations.unassigned.where(team_id: current_user.team_ids)
+      @conversations = @conversations.unassigned
     when 'assigned'
       @conversations = @conversations.assigned
     end
