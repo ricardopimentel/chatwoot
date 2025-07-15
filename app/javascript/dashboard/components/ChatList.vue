@@ -284,6 +284,7 @@ const conversationFilters = computed(() => {
 });
 
 const activeTeam = computed(() => {
+  console.log(`pegou o time?`);
   if (props.teamId) {
     return getTeamFn.value(props.teamId);
   }
