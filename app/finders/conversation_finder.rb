@@ -109,17 +109,13 @@ class ConversationFinder
   def filter_by_assignee_type
     case @assignee_type
     when 'me'
-      # Pega os IDs de todos os times do usuário atual.
-      user_team_ids = current_user.team_ids  
-      # Constrói uma condição SQL direta:
-      # A conversa deve ter o assignee_id do usuário atual
-      # OU o team_id da conversa deve estar na lista de times do usuário.
-      # O uso de '?' previne SQL Injection e é a forma correta de fazer.
-      @conversations = @conversations.where(
-        'conversations.assignee_id = ? OR conversations.team_id IN (?)',
-        current_user.id,
-        user_team_ids
-      )
+      # LÓGICA CORRIGIDA:
+      # Busca conversas atribuídas ao usuário ATUAL
+      my_conversations = @conversations.assigned_to(current_user)
+      # OU busca conversas atribuídas ao TIME do usuário
+      team_conversations = @conversations.where(team_id: current_user.team_ids)
+      # Combina as duas buscas
+      @conversations = my_conversations.or(team_conversations)
     when 'unassigned'
       @conversations = @conversations.unassigned
     when 'assigned'
@@ -177,15 +173,8 @@ class ConversationFinder
   end
 
   def set_count_for_all_conversations
-    # Pega os IDs de todos os times do usuário atual.
-    user_team_ids = current_user.team_ids
-  
-    # Aplica a mesma lógica para contar as conversas da aba "Minhas".
-    mine_count = @conversations.where(
-      'conversations.assignee_id = ? OR conversations.team_id IN (?)',
-      current_user.id,
-      user_team_ids
-    ).count
+    # LÓGICA CORRIGIDA PARA O CONTADOR 'MINE_COUNT'
+    mine_count = @conversations.assigned_to(current_user).or(@conversations.where(team_id: current_user.team_ids)).count
   
     [
       mine_count,
