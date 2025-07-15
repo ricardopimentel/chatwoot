@@ -42,22 +42,17 @@ class ConversationFinder
     mine_count, unassigned_count, all_count, = set_count_for_all_conversations
     assigned_count = all_count - unassigned_count
 
-  def filter_by_assignee_type
-    case @assignee_type
-      when 'me'
-        # LÓGICA CORRIGIDA:
-        # Busca conversas atribuídas ao usuário ATUAL
-        my_conversations = @conversations.assigned_to(current_user)
-        # OU busca conversas atribuídas ao TIME do usuário
-        team_conversations = @conversations.where(team_id: current_user.team_ids)
-        # Combina as duas buscas
-        @conversations = my_conversations.or(team_conversations)
-      when 'unassigned'
-        @conversations = @conversations.unassigned
-      when 'assigned'
-        @conversations = @conversations.assigned
-      end
-      @conversations
+    filter_by_assignee_type
+
+    {
+      conversations: conversations,
+      count: {
+        mine_count: mine_count,
+        assigned_count: assigned_count,
+        unassigned_count: unassigned_count,
+        all_count: all_count
+      }
+    }
   end
 
   private
