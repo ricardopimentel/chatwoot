@@ -109,7 +109,13 @@ class ConversationFinder
   def filter_by_assignee_type
     case @assignee_type
     when 'me'
-      @conversations = @conversations.assigned_to(current_user)
+      # LÓGICA CORRIGIDA:
+      # Busca conversas atribuídas ao usuário ATUAL
+      my_conversations = @conversations.assigned_to(current_user)
+      # OU busca conversas atribuídas ao TIME do usuário
+      team_conversations = @conversations.where(team_id: current_user.team_ids)
+      # Combina as duas buscas
+      @conversations = my_conversations.or(team_conversations)
     when 'unassigned'
       @conversations = @conversations.unassigned
     when 'assigned'
