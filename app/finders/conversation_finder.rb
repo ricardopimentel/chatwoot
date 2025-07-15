@@ -109,15 +109,16 @@ class ConversationFinder
   def filter_by_assignee_type
     case @assignee_type
     when 'me'
-      # LÓGICA CORRIGIDA:
-      # Busca conversas atribuídas ao usuário ATUAL
+      # Esta parte continua a mesma da nossa última correção, buscando o que é seu OU do seu time.
       my_conversations = @conversations.assigned_to(current_user)
-      # OU busca conversas atribuídas ao TIME do usuário
       team_conversations = @conversations.where(team_id: current_user.team_ids)
-      # Combina as duas buscas
       @conversations = my_conversations.or(team_conversations)
     when 'unassigned'
-      @conversations = @conversations.unassigned
+      # --- MUDANÇA AQUI ---
+      # Primeiro, aplicamos o filtro de "não atribuído".
+      # Em seguida, encadeamos um novo filtro para buscar apenas
+      # as conversas que pertencem aos times do usuário.
+      @conversations = @conversations.unassigned.where(team_id: current_user.team_ids)
     when 'assigned'
       @conversations = @conversations.assigned
     end
@@ -175,7 +176,6 @@ class ConversationFinder
   def set_count_for_all_conversations
     # LÓGICA CORRIGIDA PARA O CONTADOR 'MINE_COUNT'
     mine_count = @conversations.assigned_to(current_user).or(@conversations.where(team_id: current_user.team_ids)).count
-  
     [
       mine_count,
       @conversations.unassigned.count,
